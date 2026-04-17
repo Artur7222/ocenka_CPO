@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Оценка компетенций</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --text: #1f2328;
+      --muted: #667085;
+      --primary: #2563eb;
+      --border: #e5e7eb;
+      --danger: #b42318;
+      --shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1360px;
+      margin: 24px auto;
+      padding: 0 16px 24px;
+    }
+
+    .topbar, .grid, .footer {
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      padding: 16px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      border: 1px solid #d0d5dd;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .error {
+      margin-top: 6px;
+      color: var(--danger);
+      font-size: 12px;
+      min-height: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .left, .center, .right {
+      min-height: 560px;
+      padding: 16px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .btn-item {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-item.active {
+      border-color: var(--primary);
+      background: rgba(37, 99, 235, 0.08);
+      font-weight: 600;
+    }
+
+    .check-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 0 0 20px;
+      padding: 0;
+      list-style: none;
+      max-height: 360px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfcfe;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .penalty {
+      color: var(--muted);
+      font-size: 12px;
+      display: block;
+      margin-top: 3px;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+
+    .score-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fbfcff;
+    }
+
+    .score-title {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .score-value {
+      font-size: 36px;
+      font-weight: 700;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .summary-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(16, 24, 40, 0.32);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .summary-modal {
+      width: min(980px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      padding: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .summary-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 1080px) {
+      .grid { grid-template-columns: 1fr; }
+      .left, .center, .right { min-height: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="topbar panel">
+      <label for="fullNameInput">Введите ФИО респондента</label>
+      <input id="fullNameInput" type="text" placeholder="Например: Иванов Иван Иванович">
+      <div id="fullNameError" class="error"></div>
+    </section>
+
+    <section class="grid">
+      <aside class="left panel">
+        <h2>Компетенции</h2>
+        <div id="competencyList" class="list"></div>
+        <h2>Навыки</h2>
+        <div id="skillList" class="list"></div>
+      </aside>
+
+      <main class="center panel">
+        <h2>Не выполнил</h2>
+        <ul id="failList" class="check-list"></ul>
+
+        <h2>Комментарии по ответам</h2>
+        <textarea id="commentInput" placeholder="Комментарий по выбранному навыку..."></textarea>
+      </main>
+
+      <aside class="right panel">
+        <div class="score-card">
+          <div class="score-title">Итоговая оценка авто</div>
+          <div id="autoScoreValue" class="score-value">6</div>
+        </div>
+
+        <div class="score-card">
+          <div class="score-title">Итоговая оценка ручной ввод</div>
+          <input id="manualScoreInput" type="number" min="0" max="6" step="0.5" placeholder="0..6">
+          <div id="manualScoreError" class="error"></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="footer">
+      <button id="finishBtn" class="btn btn-primary">Оценка завершена</button>
+    </section>
+  </div>
+
+  <div id="summaryOverlay" class="summary-overlay">
+    <div class="summary-modal panel">
+      <h2>Итоговая форма</h2>
+      <div id="summaryContent"></div>
+      <div class="summary-actions">
+        <button id="closeSummaryBtn" class="btn btn-secondary">Закрыть</button>
+        <button id="sendBtn" class="btn btn-primary">Отправить</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE_SCORE = 6;
+
+    const competencies = [
+      {
+        id: "analysis_market",
+        name: "Анализ рынка",
+        skills: [
+          {
+            id: "market_params",
+            name: "Выбор параметров для анализа рынка",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "am_mp_1", text: "Не показал структуру рынка от общего к достижимому", penaltyValue: 1, checked: false },
+              { id: "am_mp_2", text: "Не рассказал о динамике (изменениях) рынка", penaltyValue: 1, checked: false },
+              { id: "am_mp_3", text: "Не выделил сегменты пользователей рынка", penaltyValue: 1, checked: false },
+              { id: "am_mp_4", text: "Не выделил и рассказал о трендах рынка", penaltyValue: 1, checked: false },
+              { id: "am_mp_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
+              { id: "am_mp_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
+              { id: "am_mp_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          },
+          {
+            id: "market_conclusion",
+            name: "Вывод из анализа рынка",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "am_mc_1", text: "Не связал вывод с оценкой потенциала продукта на рынке", penaltyValue: 1.5, checked: false },
+              { id: "am_mc_2", text: "Не смог объяснить, как определил потенциал продукта на рынке", penaltyValue: 1.5, checked: false },
+              { id: "am_mc_3", text: "Не учел финансовый анализ рынка", penaltyValue: 1.5, checked: false },
+              { id: "am_mc_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
+              { id: "am_mc_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
+              { id: "am_mc_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 0.5, checked: false }
+            ]
+          }
+        ]
+      },
+      {
+        id: "analysis_competitors",
+        name: "Анализ конкурентов",
+        skills: [
+          {
+            id: "competitor_params",
+            name: "Выбор параметров для анализа конкурентов",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "ac_cp_1", text: "Не оценил финансовые показатели конкурентов на рынке", penaltyValue: 1, checked: false },
+              { id: "ac_cp_2", text: "Не провел динамический анализ конкурентов для понимания лидеров рынка", penaltyValue: 1, checked: false },
+              { id: "ac_cp_3", text: "Не выделил не прямых (косвенных) конкурентов", penaltyValue: 1, checked: false },
+              { id: "ac_cp_4", text: "Не сравнил свои решения и решения конкурентов", penaltyValue: 1, checked: false },
+              { id: "ac_cp_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "ac_cp_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "ac_cp_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          },
+          {
+            id: "competitor_conclusion",
+            name: "Вывод из анализа конкурентов",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "ac_cc_1", text: "Не связал вывод с определенным способом конкуренции на рынке", penaltyValue: 3, checked: false },
+              { id: "ac_cc_2", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "ac_cc_3", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "ac_cc_4", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          }
+        ]
+      },
+      {
+        id: "product_vision",
+        name: "Видение продукта",
+        skills: [
+          {
+            id: "client_segmentation",
+            name: "Сегментация клиентов",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "pv_cs_1", text: "Не описал сегменты продукта (более 1 сегмента)", penaltyValue: 1, checked: false },
+              { id: "pv_cs_2", text: "По описанным критериям нельзя четко выделить отдельные сегменты", penaltyValue: 1, checked: false },
+              { id: "pv_cs_3", text: "Не описаны заданные в ответе клиентские сегменты из видения продукта", penaltyValue: 1, checked: false },
+              { id: "pv_cs_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "pv_cs_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "pv_cs_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          },
+          {
+            id: "client_portrait",
+            name: "Описание портрета клиента",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "pv_cp_1", text: "По описанным критериям нельзя четко определить портрет клиента", penaltyValue: 1, checked: false },
+              { id: "pv_cp_2", text: "Не учтена вся потенциальная аудитория продукта (узкий охват)", penaltyValue: 1, checked: false },
+              { id: "pv_cp_3", text: "Описана аудитория с разными потребностями/отношением к продукту (широкий охват)", penaltyValue: 1, checked: false },
+              { id: "pv_cp_4", text: "Не объяснил принцип поиска целевой аудитории для таргетирования", penaltyValue: 1, checked: false },
+              { id: "pv_cp_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
+              { id: "pv_cp_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
+              { id: "pv_cp_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          },
+          {
+            id: "problem_definition",
+            name: "Формулирование проблемы",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "pv_pd_1", text: "В разделе проблема описывает фичи и решения, а не потребности", penaltyValue: 1.5, checked: false },
+              { id: "pv_pd_2", text: "Неточности в разделении следствий и причин проблемы", penaltyValue: 1.5, checked: false },
+              { id: "pv_pd_3", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "pv_pd_4", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "pv_pd_5", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          },
+          {
+            id: "ca_problem_benefit",
+            name: "Формирование связи ЦА-Проблема-Выгода",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "pv_cb_1", text: "Не раскрыл связь «ЦА-проблема-решение-выгода» для каждого сегмента", penaltyValue: 1, checked: false },
+              { id: "pv_cb_2", text: "В разделах Проблема и Выгода описаны косвенно связанные тезисы", penaltyValue: 1, checked: false },
+              { id: "pv_cb_3", text: "В выгодах не указаны ключевые метрики зарабатывающего продукта, такие как финансовая часть или рост аудитории", penaltyValue: 1, checked: false },
+              { id: "pv_cb_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "pv_cb_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "pv_cb_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          }
+        ]
+      },
+      {
+        id: "biz_model_monetization",
+        name: "Бизнес модель и монетизация",
+        skills: [
+          {
+            id: "biz_model_choice",
+            name: "Выбор и адаптация бизнес модели и модели монетизации",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "bm_1", text: "Не объяснил разницу между бизнес моделью и моделью монетизации", penaltyValue: 1, checked: false },
+              { id: "bm_2", text: "Не описал альтернативную бизнес модель или модель монетизации", penaltyValue: 1, checked: false },
+              { id: "bm_3", text: "Не учтены некоторые факторы, влияющие на адаптацию бизнес модели/модели монетизации", penaltyValue: 1, checked: false },
+              { id: "bm_4", text: "Не объяснил применение бизнес модели или модели монетизации", penaltyValue: 1, checked: false },
+              { id: "bm_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
+              { id: "bm_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
+              { id: "bm_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          }
+        ]
+      },
+      {
+        id: "product_metrics",
+        name: "Метрики продукта",
+        skills: [
+          {
+            id: "key_metrics",
+            name: "Определение ключевых метрик продукта",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "pm_km_1", text: "Не учтена доходная метрика для зарабатывающего продукта", penaltyValue: 1, checked: false },
+              { id: "pm_km_2", text: "Не учтена метрика количества клиентов для зарабатывающего продукта", penaltyValue: 1, checked: false },
+              { id: "pm_km_3", text: "Не учтена метрика оттока/удержания клиентов для зарабатывающего продукта", penaltyValue: 1, checked: false },
+              { id: "pm_km_4", text: "Не учтены все метрики ценности продукта из видения", penaltyValue: 1, checked: false },
+              { id: "pm_km_5", text: "Для некоторых метрик некорректные/неточные формулы расчета", penaltyValue: 0.5, checked: false },
+              { id: "pm_km_6", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
+              { id: "pm_km_7", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
+              { id: "pm_km_8", text: "Не сделал часть заданий по кейсу", penaltyValue: 0.5, checked: false }
+            ]
+          },
+          {
+            id: "metrics_decomposition",
+            name: "Декомпозиция метрик",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "pm_md_1", text: "Имеются логические/математические ошибки при декомпозиции", penaltyValue: 3, checked: false },
+              { id: "pm_md_2", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "pm_md_3", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "pm_md_4", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          }
+        ]
+      },
+      {
+        id: "hypothesis_prioritization",
+        name: "Гипотезы и приоритизация",
+        skills: [
+          {
+            id: "hypothesis_formulation",
+            name: "Формулировка гипотез",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "hp_hf_1", text: "Некоторые гипотезы не влияют на достижение заданной цели продукта по кейсу", penaltyValue: 1, checked: false },
+              { id: "hp_hf_2", text: "Ошибки/затруднения в формулировке проверяемого действия/целевой метрики/ожидаемого эффекта", penaltyValue: 1, checked: false },
+              { id: "hp_hf_3", text: "Некоторые гипотезы являются аксиомами, не требуют проверки", penaltyValue: 1, checked: false },
+              { id: "hp_hf_4", text: "Некоторые гипотезы сформулированы в виде задач, предполагают поэтапное выполнение, а не проверку предположения", penaltyValue: 1, checked: false },
+              { id: "hp_hf_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
+              { id: "hp_hf_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
+              { id: "hp_hf_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          },
+          {
+            id: "hypothesis_backlog_prioritization",
+            name: "Приоритизация бэклога гипотез",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "hp_hb_1", text: "Не знаком с каким-либо из классических методов приоритизации гипотез, такие как ICE, RICE, MoSCoW или другие", penaltyValue: 1, checked: false },
+              { id: "hp_hb_2", text: "Метод приоритизации лишь косвенно учитывает влияние метрики ожидаемого эффекта", penaltyValue: 1, checked: false },
+              { id: "hp_hb_3", text: "Влияние ожидаемого эффекта на приоритизацию лишь косвенно опирается на аналитику продукта и математику расчета эффекта, содержит экспертный подход", penaltyValue: 1, checked: false },
+              { id: "hp_hb_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "hp_hb_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "hp_hb_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          }
+        ]
+      },
+      {
+        id: "research_hypothesis_validation",
+        name: "Исследования и проверка гипотез",
+        skills: [
+          {
+            id: "research_selection",
+            name: "Выбор исследований для проверки гипотез",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "rh_rs_1", text: "В некоторых случаях выбраны нерелевантные/неоптимальные виды исследований, увеличено время и стоимость проверки гипотез", penaltyValue: 1, checked: false },
+              { id: "rh_rs_2", text: "Затруднения при выборе альтернативных методов проверки гипотез", penaltyValue: 1, checked: false },
+              { id: "rh_rs_3", text: "Работа с некоторыми гипотезами описана не в виде проверки предположения, а в виде выполнения задач", penaltyValue: 1, checked: false },
+              { id: "rh_rs_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "rh_rs_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "rh_rs_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          },
+          {
+            id: "experiment_design",
+            name: "Описание дизайна экспериментов для проверки гипотез",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "rh_ed_1", text: "В некоторых экспериментах не сформулирован порядок и описание шагов, сроки проведения, условия завершения, критерии успешности", penaltyValue: 1.5, checked: false },
+              { id: "rh_ed_2", text: "Ошибки/неточности в описании дизайна выбранного эксперимента", penaltyValue: 1.5, checked: false },
+              { id: "rh_ed_3", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "rh_ed_4", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "rh_ed_5", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          },
+          {
+            id: "research_definition",
+            name: "Определение исследований при проверке гипотез",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "rh_rd_1", text: "Известны лишь несколько видов исследований", penaltyValue: 1.5, checked: false },
+              { id: "rh_rd_2", text: "Ошибки/неточности в описании формата применения/проведения исследования", penaltyValue: 1.5, checked: false },
+              { id: "rh_rd_3", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "rh_rd_4", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "rh_rd_5", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          }
+        ]
+      },
+      {
+        id: "product_analytics",
+        name: "Аналитика в продукте",
+        skills: [
+          {
+            id: "metric_calculation",
+            name: "Расчет метрик продукта",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "pa_mc_1", text: "Допущены незначительные ошибки в расчетах по заданию", penaltyValue: 3, checked: false },
+              { id: "pa_mc_2", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "pa_mc_3", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "pa_mc_4", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          },
+          {
+            id: "metric_interpretation",
+            name: "Интерпретация метрических данных продукта",
+            baseScore: BASE_SCORE,
+            currentAutoScore: BASE_SCORE,
+            manualScore: "",
+            commentText: "",
+            failItems: [
+              { id: "pa_mi_1", text: "Некоторые выводы по заданию содержат математические/логические ошибки", penaltyValue: 1, checked: false },
+              { id: "pa_mi_2", text: "Затруднения в применении метода расчета сквозной конверсии в воронке", penaltyValue: 1, checked: false },
+              { id: "pa_mi_3", text: "Не сделан ключевой вывод по заданию из кейса", penaltyValue: 1, checked: false },
+              { id: "pa_mi_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
+              { id: "pa_mi_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
+              { id: "pa_mi_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+            ]
+          }
+        ]
+      }
+    ];
+
+    const state = {
+      respondentFullName: "",
+      selectedCompetencyId: competencies[0].id,
+      selectedSkillId: competencies[0].skills[0].id,
+      summaryRows: []
+    };
+
+    const refs = {
+      fullNameInput: document.getElementById("fullNameInput"),
+      fullNameError: document.getElementById("fullNameError"),
+      competencyList: document.getElementById("competencyList"),
+      skillList: document.getElementById("skillList"),
+      failList: document.getElementById("failList"),
+      commentInput: document.getElementById("commentInput"),
+      autoScoreValue: document.getElementById("autoScoreValue"),
+      manualScoreInput: document.getElementById("manualScoreInput"),
+      manualScoreError: document.getElementById("manualScoreError"),
+      finishBtn: document.getElementById("finishBtn"),
+      summaryOverlay: document.getElementById("summaryOverlay"),
+      summaryContent: document.getElementById("summaryContent"),
+      closeSummaryBtn: document.getElementById("closeSummaryBtn"),
+      sendBtn: document.getElementById("sendBtn")
+    };
+
+    function clampScore(value) {
+      if (Number.isNaN(value)) return 0;
+      if (value > 6) return 6;
+      if (value < 0) return 0;
+      return Number(value.toFixed(2));
+    }
+
+    function getSelectedCompetency() {
+      return competencies.find((c) => c.id === state.selectedCompetencyId);
+    }
+
+    function getSelectedSkill() {
+      const competency = getSelectedCompetency();
+      return competency.skills.find((s) => s.id === state.selectedSkillId);
+    }
+
+    function calculateAutoScore(skill) {
+      const penalties = skill.failItems
+        .filter((item) => item.checked)
+        .reduce((sum, item) => sum + item.penaltyValue, 0);
+      skill.currentAutoScore = clampScore(skill.baseScore - penalties);
+    }
+
+    function validateManualScore(value) {
+      if (value === "") return "";
+      const numeric = Number(value);
+      if (Number.isNaN(numeric)) return "Введите число от 0 до 6.";
+      if (numeric < 0 || numeric > 6) return "Ручная оценка должна быть в диапазоне 0..6.";
+      return "";
+    }
+
+    function renderCompetencyList() {
+      refs.competencyList.innerHTML = "";
+      competencies.forEach((competency) => {
+        const button = document.createElement("button");
+        button.className = "btn-item";
+        if (competency.id === state.selectedCompetencyId) {
+          button.classList.add("active");
+        }
+        button.textContent = competency.name;
+        button.addEventListener("click", () => {
+          state.selectedCompetencyId = competency.id;
+          state.selectedSkillId = competency.skills[0].id;
+          renderAll();
+        });
+        refs.competencyList.appendChild(button);
+      });
+    }
+
+    function renderSkillList() {
+      refs.skillList.innerHTML = "";
+      const competency = getSelectedCompetency();
+      competency.skills.forEach((skill) => {
+        const button = document.createElement("button");
+        button.className = "btn-item";
+        if (skill.id === state.selectedSkillId) {
+          button.classList.add("active");
+        }
+        button.textContent = skill.name;
+        button.addEventListener("click", () => {
+          state.selectedSkillId = skill.id;
+          renderAll();
+        });
+        refs.skillList.appendChild(button);
+      });
+    }
+
+    function renderFailItems() {
+      const skill = getSelectedSkill();
+      refs.failList.innerHTML = "";
+
+      skill.failItems.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "check-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = item.checked;
+        checkbox.addEventListener("change", (event) => {
+          item.checked = event.target.checked;
+          calculateAutoScore(skill);
+          renderScorePanel();
+        });
+
+        const textWrap = document.createElement("div");
+        textWrap.innerHTML = `${item.text}<span class="penalty">Штраф: ${item.penaltyValue}</span>`;
+
+        li.appendChild(checkbox);
+        li.appendChild(textWrap);
+        refs.failList.appendChild(li);
+      });
+    }
+
+    function renderCenterPanel() {
+      const skill = getSelectedSkill();
+      refs.commentInput.value = skill.commentText;
+      renderFailItems();
+    }
+
+    function renderScorePanel() {
+      const skill = getSelectedSkill();
+      refs.autoScoreValue.textContent = String(skill.currentAutoScore);
+      refs.manualScoreInput.value = skill.manualScore;
+      refs.manualScoreError.textContent = "";
+    }
+
+    function buildSummaryRows() {
+      const rows = [];
+      competencies.forEach((competency) => {
+        competency.skills.forEach((skill) => {
+          const selectedFails = skill.failItems.filter((item) => item.checked);
+          if (selectedFails.length === 0) return;
+          rows.push({
+            competencyName: competency.name,
+            skillName: skill.name,
+            failText: selectedFails.map((f) => `- ${f.text}`).join("\n"),
+            finalScore: skill.currentAutoScore
+          });
+        });
+      });
+      return rows;
+    }
+
+    function renderSummary(rows) {
+      if (rows.length === 0) {
+        refs.summaryContent.innerHTML = "<div class='empty'>Нет выбранных навыков с отмеченными пунктами «Не выполнил».</div>";
+        return;
+      }
+
+      const table = document.createElement("table");
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Компетенция</th>
+            <th>Навык</th>
+            <th>Не выполнил (только отмеченные пункты)</th>
+            <th>Итоговый балл</th>
+          </tr>
+        </thead>
+      `;
+      const tbody = document.createElement("tbody");
+
+      rows.forEach((row) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(row.competencyName)}</td>
+          <td>${escapeHtml(row.skillName)}</td>
+          <td>${escapeHtml(row.failText).replace(/\n/g, "<br>")}</td>
+          <td>${row.finalScore}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      refs.summaryContent.innerHTML = "";
+      refs.summaryContent.appendChild(table);
+    }
+
+    function buildEmailText(rows, fullName) {
+      const lines = [`ФИО респондента: ${fullName}`, "", "Итоговая оценка:"];
+      rows.forEach((row, idx) => {
+        lines.push(
+          "",
+          `${idx + 1}. Компетенция: ${row.competencyName}`,
+          `   Навык: ${row.skillName}`,
+          "   Не выполнил:",
+          row.failText.split("\n").map((line) => `   ${line}`).join("\n"),
+          `   Итоговый балл: ${row.finalScore}`
+        );
+      });
+      return lines.join("\n");
+    }
+
+    function buildMailtoLink(rows, fullName) {
+      const subject = `Оценка компетенций: ${fullName}`;
+      const body = buildEmailText(rows, fullName);
+      return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+
+    function validateBeforeFinish() {
+      let isValid = true;
+      state.respondentFullName = refs.fullNameInput.value.trim();
+      if (!state.respondentFullName) {
+        refs.fullNameError.textContent = "Поле ФИО обязательно для заполнения.";
+        isValid = false;
+      } else {
+        refs.fullNameError.textContent = "";
+      }
+
+      const currentSkill = getSelectedSkill();
+      const manualError = validateManualScore(String(currentSkill.manualScore));
+      refs.manualScoreError.textContent = manualError;
+      if (manualError) isValid = false;
+
+      return isValid;
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderAll() {
+      renderCompetencyList();
+      renderSkillList();
+      renderCenterPanel();
+      renderScorePanel();
+    }
+
+    refs.commentInput.addEventListener("input", (event) => {
+      const skill = getSelectedSkill();
+      skill.commentText = event.target.value;
+    });
+
+    refs.manualScoreInput.addEventListener("input", (event) => {
+      const skill = getSelectedSkill();
+      skill.manualScore = event.target.value;
+      refs.manualScoreError.textContent = validateManualScore(skill.manualScore);
+    });
+
+    refs.fullNameInput.addEventListener("input", () => {
+      if (refs.fullNameInput.value.trim()) {
+        refs.fullNameError.textContent = "";
+      }
+    });
+
+    refs.finishBtn.addEventListener("click", () => {
+      if (!validateBeforeFinish()) return;
+      state.summaryRows = buildSummaryRows();
+      renderSummary(state.summaryRows);
+      refs.summaryOverlay.style.display = "flex";
+    });
+
+    refs.closeSummaryBtn.addEventListener("click", () => {
+      refs.summaryOverlay.style.display = "none";
+    });
+
+    refs.sendBtn.addEventListener("click", () => {
+      if (!state.respondentFullName) {
+        refs.fullNameError.textContent = "Заполните ФИО перед отправкой.";
+        refs.summaryOverlay.style.display = "none";
+        return;
+      }
+      const mailto = buildMailtoLink(state.summaryRows, state.respondentFullName);
+      window.location.href = mailto;
+    });
+
+    competencies.forEach((competency) => {
+      competency.skills.forEach((skill) => calculateAutoScore(skill));
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
