@@ -106,6 +106,28 @@
       margin-bottom: 16px;
     }
 
+    .subsection {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .mini-field {
+      margin-bottom: 10px;
+    }
+
+    .mini-field label {
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .mini-field input {
+      font-size: 13px;
+      padding: 8px 10px;
+    }
+
     .btn-item {
       width: 100%;
       text-align: left;
@@ -243,6 +265,29 @@
       justify-content: flex-end;
     }
 
+    .fallback-box {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+      display: none;
+    }
+
+    .fallback-box h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: var(--text);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .fallback-box textarea {
+      min-height: 140px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
     .empty {
       color: var(--muted);
       font-size: 14px;
@@ -269,6 +314,11 @@
         <div id="competencyList" class="list"></div>
         <h2>Навыки</h2>
         <div id="skillList" class="list"></div>
+
+        <div class="subsection">
+          <h2>Неофициальные комментарии</h2>
+          <div id="unofficialCommentsList"></div>
+        </div>
       </aside>
 
       <main class="center panel">
@@ -306,11 +356,26 @@
         <button id="closeSummaryBtn" class="btn btn-secondary">Закрыть</button>
         <button id="sendBtn" class="btn btn-primary">Отправить</button>
       </div>
+      <div id="mailtoFallbackBox" class="fallback-box">
+        <h3>Ссылка для письма получилась слишком длинной</h3>
+        <p class="empty">Скопируйте текст ниже и вставьте его в письмо вручную.</p>
+        <textarea id="mailtoFallbackText" readonly></textarea>
+        <button id="copyFallbackBtn" class="btn btn-secondary">Скопировать текст</button>
+        <div id="copyFallbackStatus" class="error"></div>
+      </div>
     </div>
   </div>
 
   <script>
     const BASE_SCORE = 6;
+    const unofficialQuestions = [
+      "В общем уровень начальный/базовый/продвинутый",
+      "Как отвечает на вопросы в глубину",
+      "Ответы структурные или поток сознания",
+      "Отношение там где не знает или ошибается",
+      "Делал с ИИ/без ИИ. Смог или нет подтвердить знания",
+      "Чем особо запомнился/Дополнительная информация"
+    ];
 
     const competencies = [
       {
@@ -653,7 +718,13 @@
       respondentFullName: "",
       selectedCompetencyId: competencies[0].id,
       selectedSkillId: competencies[0].skills[0].id,
-      summaryRows: []
+      summaryRows: [],
+      unofficialComments: unofficialQuestions.map((question, idx) => ({
+        id: `u_${idx + 1}`,
+        question,
+        answer: "",
+        error: ""
+      }))
     };
 
     const refs = {
@@ -661,6 +732,7 @@
       fullNameError: document.getElementById("fullNameError"),
       competencyList: document.getElementById("competencyList"),
       skillList: document.getElementById("skillList"),
+      unofficialCommentsList: document.getElementById("unofficialCommentsList"),
       failList: document.getElementById("failList"),
       commentInput: document.getElementById("commentInput"),
       autoScoreValue: document.getElementById("autoScoreValue"),
@@ -670,7 +742,11 @@
       summaryOverlay: document.getElementById("summaryOverlay"),
       summaryContent: document.getElementById("summaryContent"),
       closeSummaryBtn: document.getElementById("closeSummaryBtn"),
-      sendBtn: document.getElementById("sendBtn")
+      sendBtn: document.getElementById("sendBtn"),
+      mailtoFallbackBox: document.getElementById("mailtoFallbackBox"),
+      mailtoFallbackText: document.getElementById("mailtoFallbackText"),
+      copyFallbackBtn: document.getElementById("copyFallbackBtn"),
+      copyFallbackStatus: document.getElementById("copyFallbackStatus")
     };
 
     function clampScore(value) {
@@ -740,6 +816,27 @@
       });
     }
 
+    function renderUnofficialComments() {
+      refs.unofficialCommentsList.innerHTML = "";
+      state.unofficialComments.forEach((item, idx) => {
+        const wrap = document.createElement("div");
+        wrap.className = "mini-field";
+        wrap.innerHTML = `
+          <label for="unofficial_${idx + 1}">${idx + 1}. ${escapeHtml(item.question)}</label>
+          <input id="unofficial_${idx + 1}" type="text" value="${escapeHtml(item.answer)}" />
+          <div class="error">${item.error || ""}</div>
+        `;
+        const input = wrap.querySelector("input");
+        const errorNode = wrap.querySelector(".error");
+        input.addEventListener("input", (event) => {
+          item.answer = event.target.value;
+          item.error = "";
+          errorNode.textContent = "";
+        });
+        refs.unofficialCommentsList.appendChild(wrap);
+      });
+    }
+
     function renderFailItems() {
       const skill = getSelectedSkill();
       refs.failList.innerHTML = "";
@@ -786,49 +883,85 @@
           const selectedFails = skill.failItems.filter((item) => item.checked);
           if (selectedFails.length === 0) return;
           rows.push({
-            competencyName: competency.name,
+            themeName: competency.name,
             skillName: skill.name,
-            failText: selectedFails.map((f) => `- ${f.text}`).join("\n"),
-            finalScore: skill.currentAutoScore
+            commentsText: selectedFails.map((f) => `- ${f.text}`).join("\n"),
+            autoScore: skill.currentAutoScore
           });
         });
       });
       return rows;
     }
 
-    function renderSummary(rows) {
-      if (rows.length === 0) {
-        refs.summaryContent.innerHTML = "<div class='empty'>Нет выбранных навыков с отмеченными пунктами «Не выполнил».</div>";
-        return;
-      }
+    function getLevelLabel(autoScore) {
+      if (autoScore === 0) return "Навык отсутствует";
+      if (autoScore === 1 || autoScore === 2) return "Начальный уровень";
+      if (autoScore === 3 || autoScore === 4) return "Базовый уровень";
+      return "Продвинутый уровень";
+    }
 
-      const table = document.createElement("table");
-      table.innerHTML = `
+    function renderSummary(rows) {
+      refs.summaryContent.innerHTML = "";
+
+      if (rows.length === 0) {
+        const emptyInfo = document.createElement("div");
+        emptyInfo.className = "empty";
+        emptyInfo.textContent = "Нет выбранных навыков с отмеченными пунктами «Не выполнил».";
+        refs.summaryContent.appendChild(emptyInfo);
+      } else {
+        const table = document.createElement("table");
+        table.innerHTML = `
         <thead>
           <tr>
-            <th>Компетенция</th>
+            <th>Тема</th>
             <th>Навык</th>
-            <th>Не выполнил (только отмеченные пункты)</th>
-            <th>Итоговый балл</th>
+            <th>Уровень</th>
+            <th>Комментарии</th>
           </tr>
         </thead>
       `;
-      const tbody = document.createElement("tbody");
+        const tbody = document.createElement("tbody");
 
-      rows.forEach((row) => {
+        rows.forEach((row) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+          <td>${escapeHtml(row.themeName)}</td>
+          <td>${escapeHtml(row.skillName)}</td>
+          <td>${row.autoScore} - ${escapeHtml(getLevelLabel(row.autoScore))}</td>
+          <td>${escapeHtml(row.commentsText).replace(/\n/g, "<br>")}</td>
+        `;
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        refs.summaryContent.appendChild(table);
+      }
+
+      const unofficialTitle = document.createElement("h2");
+      unofficialTitle.style.marginTop = "18px";
+      unofficialTitle.textContent = "Неофициальные комментарии";
+      refs.summaryContent.appendChild(unofficialTitle);
+
+      const unofficialTable = document.createElement("table");
+      unofficialTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>Комментарий</th>
+          </tr>
+        </thead>
+      `;
+      const unofficialBody = document.createElement("tbody");
+      state.unofficialComments.forEach((item, idx) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${escapeHtml(row.competencyName)}</td>
-          <td>${escapeHtml(row.skillName)}</td>
-          <td>${escapeHtml(row.failText).replace(/\n/g, "<br>")}</td>
-          <td>${row.finalScore}</td>
+          <td>${idx + 1}</td>
+          <td><strong>${escapeHtml(item.question)}</strong><br>${escapeHtml(item.answer)}</td>
         `;
-        tbody.appendChild(tr);
+        unofficialBody.appendChild(tr);
       });
-
-      table.appendChild(tbody);
-      refs.summaryContent.innerHTML = "";
-      refs.summaryContent.appendChild(table);
+      unofficialTable.appendChild(unofficialBody);
+      refs.summaryContent.appendChild(unofficialTable);
     }
 
     function buildEmailText(rows, fullName) {
@@ -836,12 +969,16 @@
       rows.forEach((row, idx) => {
         lines.push(
           "",
-          `${idx + 1}. Компетенция: ${row.competencyName}`,
+          `${idx + 1}. Тема: ${row.themeName}`,
           `   Навык: ${row.skillName}`,
-          "   Не выполнил:",
-          row.failText.split("\n").map((line) => `   ${line}`).join("\n"),
-          `   Итоговый балл: ${row.finalScore}`
+          `   Уровень: ${row.autoScore} - ${getLevelLabel(row.autoScore)}`,
+          "   Комментарии:",
+          row.commentsText.split("\n").map((line) => `   ${line}`).join("\n")
         );
+      });
+      lines.push("", "Неофициальные комментарии:");
+      state.unofficialComments.forEach((item, idx) => {
+        lines.push(`${idx + 1}. ${item.question}: ${item.answer}`);
       });
       return lines.join("\n");
     }
@@ -850,6 +987,12 @@
       const subject = `Оценка компетенций: ${fullName}`;
       const body = buildEmailText(rows, fullName);
       return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+
+    function resetMailtoFallback() {
+      refs.mailtoFallbackBox.style.display = "none";
+      refs.mailtoFallbackText.value = "";
+      refs.copyFallbackStatus.textContent = "";
     }
 
     function validateBeforeFinish() {
@@ -867,6 +1010,17 @@
       refs.manualScoreError.textContent = manualError;
       if (manualError) isValid = false;
 
+      state.unofficialComments.forEach((item) => {
+        const value = item.answer.trim();
+        if (!value) {
+          item.error = "Это поле обязательно.";
+          isValid = false;
+        } else {
+          item.error = "";
+        }
+      });
+      renderUnofficialComments();
+
       return isValid;
     }
 
@@ -882,6 +1036,7 @@
     function renderAll() {
       renderCompetencyList();
       renderSkillList();
+      renderUnofficialComments();
       renderCenterPanel();
       renderScorePanel();
     }
@@ -907,10 +1062,12 @@
       if (!validateBeforeFinish()) return;
       state.summaryRows = buildSummaryRows();
       renderSummary(state.summaryRows);
+      resetMailtoFallback();
       refs.summaryOverlay.style.display = "flex";
     });
 
     refs.closeSummaryBtn.addEventListener("click", () => {
+      resetMailtoFallback();
       refs.summaryOverlay.style.display = "none";
     });
 
@@ -920,8 +1077,27 @@
         refs.summaryOverlay.style.display = "none";
         return;
       }
+      const emailText = buildEmailText(state.summaryRows, state.respondentFullName);
       const mailto = buildMailtoLink(state.summaryRows, state.respondentFullName);
+      const maxMailtoLength = 1800;
+
+      if (mailto.length > maxMailtoLength) {
+        refs.mailtoFallbackText.value = emailText;
+        refs.copyFallbackStatus.textContent = "";
+        refs.mailtoFallbackBox.style.display = "block";
+        return;
+      }
+
       window.location.href = mailto;
+    });
+
+    refs.copyFallbackBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(refs.mailtoFallbackText.value);
+        refs.copyFallbackStatus.textContent = "Текст скопирован.";
+      } catch (error) {
+        refs.copyFallbackStatus.textContent = "Не удалось скопировать автоматически. Скопируйте текст вручную.";
+      }
     });
 
     competencies.forEach((competency) => {
