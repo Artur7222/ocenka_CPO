@@ -78,12 +78,14 @@
       display: grid;
       grid-template-columns: 280px 1fr 320px;
       gap: 16px;
-      align-items: start;
+      align-items: stretch;
     }
 
     .left, .center, .right {
-      min-height: 560px;
+      min-height: 620px;
       padding: 16px;
+      display: flex;
+      flex-direction: column;
     }
 
     h2 {
@@ -112,20 +114,29 @@
       border-top: 1px solid var(--border);
     }
 
-    .mini-field {
-      margin-bottom: 10px;
+    .btn-item.invalid {
+      border-color: #fda29b;
+      background: #fff5f4;
     }
 
-    .mini-field label {
-      margin-bottom: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1.3;
+    .btn-item.done {
+      border-color: #b6e7c9;
+      background: #f1fbf5;
     }
 
-    .mini-field input {
-      font-size: 13px;
-      padding: 8px 10px;
+    .question-title {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+
+    .grow {
+      flex: 1;
+    }
+
+    .hidden {
+      display: none;
     }
 
     .btn-item {
@@ -317,7 +328,7 @@
 
         <div class="subsection">
           <h2>Неофициальные комментарии</h2>
-          <div id="unofficialCommentsList"></div>
+          <div id="unofficialCommentsList" class="list"></div>
         </div>
       </aside>
 
@@ -327,6 +338,13 @@
 
         <h2>Комментарии по ответам</h2>
         <textarea id="commentInput" placeholder="Комментарий по выбранному навыку..."></textarea>
+
+        <div id="unofficialAnswerSection" class="subsection hidden">
+          <h2>Ответ на неофициальный комментарий</h2>
+          <div id="unofficialQuestionTitle" class="question-title"></div>
+          <textarea id="unofficialAnswerInput" class="grow" placeholder="Введите ответ по выбранному вопросу..."></textarea>
+          <div id="unofficialAnswerError" class="error"></div>
+        </div>
       </main>
 
       <aside class="right panel">
@@ -718,6 +736,7 @@
       respondentFullName: "",
       selectedCompetencyId: competencies[0].id,
       selectedSkillId: competencies[0].skills[0].id,
+      selectedUnofficialCommentId: null,
       summaryRows: [],
       unofficialComments: unofficialQuestions.map((question, idx) => ({
         id: `u_${idx + 1}`,
@@ -733,6 +752,10 @@
       competencyList: document.getElementById("competencyList"),
       skillList: document.getElementById("skillList"),
       unofficialCommentsList: document.getElementById("unofficialCommentsList"),
+      unofficialAnswerSection: document.getElementById("unofficialAnswerSection"),
+      unofficialQuestionTitle: document.getElementById("unofficialQuestionTitle"),
+      unofficialAnswerInput: document.getElementById("unofficialAnswerInput"),
+      unofficialAnswerError: document.getElementById("unofficialAnswerError"),
       failList: document.getElementById("failList"),
       commentInput: document.getElementById("commentInput"),
       autoScoreValue: document.getElementById("autoScoreValue"),
@@ -816,25 +839,42 @@
       });
     }
 
+    function getSelectedUnofficialComment() {
+      return state.unofficialComments.find((item) => item.id === state.selectedUnofficialCommentId) || state.unofficialComments[0];
+    }
+
     function renderUnofficialComments() {
       refs.unofficialCommentsList.innerHTML = "";
       state.unofficialComments.forEach((item, idx) => {
-        const wrap = document.createElement("div");
-        wrap.className = "mini-field";
-        wrap.innerHTML = `
-          <label for="unofficial_${idx + 1}">${idx + 1}. ${escapeHtml(item.question)}</label>
-          <input id="unofficial_${idx + 1}" type="text" value="${escapeHtml(item.answer)}" />
-          <div class="error">${item.error || ""}</div>
-        `;
-        const input = wrap.querySelector("input");
-        const errorNode = wrap.querySelector(".error");
-        input.addEventListener("input", (event) => {
-          item.answer = event.target.value;
-          item.error = "";
-          errorNode.textContent = "";
+        const button = document.createElement("button");
+        button.className = "btn-item";
+        if (item.id === state.selectedUnofficialCommentId) button.classList.add("active");
+        if (item.error) button.classList.add("invalid");
+        if (item.answer.trim()) button.classList.add("done");
+        const prefix = item.answer.trim() ? "✓ " : "";
+        button.textContent = `${prefix}${idx + 1}. ${item.question}`;
+        button.addEventListener("click", () => {
+          state.selectedUnofficialCommentId = item.id;
+          renderUnofficialAnswerPanel();
         });
-        refs.unofficialCommentsList.appendChild(wrap);
+        refs.unofficialCommentsList.appendChild(button);
       });
+    }
+
+    function renderUnofficialAnswerPanel() {
+      if (!state.selectedUnofficialCommentId) {
+        refs.unofficialAnswerSection.classList.add("hidden");
+        refs.unofficialQuestionTitle.textContent = "";
+        refs.unofficialAnswerInput.value = "";
+        refs.unofficialAnswerError.textContent = "";
+        return;
+      }
+
+      const selected = getSelectedUnofficialComment();
+      refs.unofficialAnswerSection.classList.remove("hidden");
+      refs.unofficialQuestionTitle.textContent = selected.question;
+      refs.unofficialAnswerInput.value = selected.answer;
+      refs.unofficialAnswerError.textContent = selected.error || "";
     }
 
     function renderFailItems() {
@@ -997,6 +1037,7 @@
 
     function validateBeforeFinish() {
       let isValid = true;
+      let firstMissingId = null;
       state.respondentFullName = refs.fullNameInput.value.trim();
       if (!state.respondentFullName) {
         refs.fullNameError.textContent = "Поле ФИО обязательно для заполнения.";
@@ -1014,12 +1055,17 @@
         const value = item.answer.trim();
         if (!value) {
           item.error = "Это поле обязательно.";
+          if (!firstMissingId) firstMissingId = item.id;
           isValid = false;
         } else {
           item.error = "";
         }
       });
+      if (!isValid && !state.selectedUnofficialCommentId && firstMissingId) {
+        state.selectedUnofficialCommentId = firstMissingId;
+      }
       renderUnofficialComments();
+      renderUnofficialAnswerPanel();
 
       return isValid;
     }
@@ -1037,6 +1083,7 @@
       renderCompetencyList();
       renderSkillList();
       renderUnofficialComments();
+      renderUnofficialAnswerPanel();
       renderCenterPanel();
       renderScorePanel();
     }
@@ -1056,6 +1103,14 @@
       if (refs.fullNameInput.value.trim()) {
         refs.fullNameError.textContent = "";
       }
+    });
+
+    refs.unofficialAnswerInput.addEventListener("input", (event) => {
+      const selected = getSelectedUnofficialComment();
+      selected.answer = event.target.value;
+      selected.error = "";
+      renderUnofficialComments();
+      refs.unofficialAnswerError.textContent = "";
     });
 
     refs.finishBtn.addEventListener("click", () => {
