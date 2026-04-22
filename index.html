@@ -353,11 +353,6 @@
           <div id="autoScoreValue" class="score-value">6</div>
         </div>
 
-        <div class="score-card">
-          <div class="score-title">Итоговая оценка ручной ввод</div>
-          <input id="manualScoreInput" type="number" min="0" max="6" step="0.5" placeholder="0..6">
-          <div id="manualScoreError" class="error"></div>
-        </div>
       </aside>
     </section>
 
@@ -386,6 +381,11 @@
 
   <script>
     const BASE_SCORE = 6;
+    const HIDDEN_FAIL_TEXTS = new Set([
+      "Знания не структурированы, есть пробелы в ответе",
+      "Затруднения и ошибки при дополнительных вопросах",
+      "Не сделал часть заданий по кейсу"
+    ]);
     const unofficialQuestions = [
       "В общем уровень начальный/базовый/продвинутый",
       "Как отвечает на вопросы в глубину",
@@ -403,26 +403,24 @@
           {
             id: "market_params",
             name: "Выбор параметров для анализа рынка",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "am_mp_1", text: "Не показал структуру рынка от общего к достижимому", penaltyValue: 1, checked: false },
-              { id: "am_mp_2", text: "Не рассказал о динамике (изменениях) рынка", penaltyValue: 1, checked: false },
-              { id: "am_mp_3", text: "Не выделил сегменты пользователей рынка", penaltyValue: 1, checked: false },
-              { id: "am_mp_4", text: "Не выделил и рассказал о трендах рынка", penaltyValue: 1, checked: false },
+              { id: "am_mp_1", text: "Не показал структуру рынка от общего к достижимому", penaltyValue: 1.0, checked: false },
+              { id: "am_mp_2", text: "Не рассказал о динамике (изменениях) рынка", penaltyValue: 1.0, checked: false },
+              { id: "am_mp_3", text: "Не выделил сегменты пользователей рынка", penaltyValue: 1.0, checked: false },
+              { id: "am_mp_4", text: "Не выделил и рассказал о трендах рынка", penaltyValue: 1.0, checked: false },
               { id: "am_mp_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
               { id: "am_mp_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
-              { id: "am_mp_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "am_mp_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           },
           {
             id: "market_conclusion",
             name: "Вывод из анализа рынка",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
               { id: "am_mc_1", text: "Не связал вывод с оценкой потенциала продукта на рынке", penaltyValue: 1.5, checked: false },
@@ -442,32 +440,30 @@
           {
             id: "competitor_params",
             name: "Выбор параметров для анализа конкурентов",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "ac_cp_1", text: "Не оценил финансовые показатели конкурентов на рынке", penaltyValue: 1, checked: false },
-              { id: "ac_cp_2", text: "Не провел динамический анализ конкурентов для понимания лидеров рынка", penaltyValue: 1, checked: false },
-              { id: "ac_cp_3", text: "Не выделил не прямых (косвенных) конкурентов", penaltyValue: 1, checked: false },
-              { id: "ac_cp_4", text: "Не сравнил свои решения и решения конкурентов", penaltyValue: 1, checked: false },
-              { id: "ac_cp_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "ac_cp_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "ac_cp_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "ac_cp_1", text: "Не оценил финансовые показатели конкурентов на рынке", penaltyValue: 1.0, checked: false },
+              { id: "ac_cp_2", text: "Не провел динамический анализ конкурентов для понимания лидеров рынка", penaltyValue: 1.0, checked: false },
+              { id: "ac_cp_3", text: "Не выделил не прямых (косвенных) конкурентов", penaltyValue: 1.0, checked: false },
+              { id: "ac_cp_4", text: "Не сравнил свои решения и решения конкурентов", penaltyValue: 1.0, checked: false },
+              { id: "ac_cp_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "ac_cp_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "ac_cp_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           },
           {
             id: "competitor_conclusion",
             name: "Вывод из анализа конкурентов",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "ac_cc_1", text: "Не связал вывод с определенным способом конкуренции на рынке", penaltyValue: 3, checked: false },
-              { id: "ac_cc_2", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "ac_cc_3", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "ac_cc_4", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "ac_cc_1", text: "Не связал вывод с определенным способом конкуренции на рынке", penaltyValue: 3.0, checked: false },
+              { id: "ac_cc_2", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "ac_cc_3", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "ac_cc_4", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           }
         ]
@@ -479,65 +475,61 @@
           {
             id: "client_segmentation",
             name: "Сегментация клиентов",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "pv_cs_1", text: "Не описал сегменты продукта (более 1 сегмента)", penaltyValue: 1, checked: false },
-              { id: "pv_cs_2", text: "По описанным критериям нельзя четко выделить отдельные сегменты", penaltyValue: 1, checked: false },
-              { id: "pv_cs_3", text: "Не описаны заданные в ответе клиентские сегменты из видения продукта", penaltyValue: 1, checked: false },
-              { id: "pv_cs_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "pv_cs_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "pv_cs_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "pv_cs_1", text: "Не описал сегменты продукта (более 1 сегмента)", penaltyValue: 1.0, checked: false },
+              { id: "pv_cs_2", text: "По описанным критериям нельзя четко выделить отдельные сегменты", penaltyValue: 1.0, checked: false },
+              { id: "pv_cs_3", text: "Не описаны заданные в ответе клиентские сегменты из видения продукта", penaltyValue: 1.0, checked: false },
+              { id: "pv_cs_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "pv_cs_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "pv_cs_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           },
           {
             id: "client_portrait",
             name: "Описание портрета клиента",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "pv_cp_1", text: "По описанным критериям нельзя четко определить портрет клиента", penaltyValue: 1, checked: false },
-              { id: "pv_cp_2", text: "Не учтена вся потенциальная аудитория продукта (узкий охват)", penaltyValue: 1, checked: false },
-              { id: "pv_cp_3", text: "Описана аудитория с разными потребностями/отношением к продукту (широкий охват)", penaltyValue: 1, checked: false },
-              { id: "pv_cp_4", text: "Не объяснил принцип поиска целевой аудитории для таргетирования", penaltyValue: 1, checked: false },
+              { id: "pv_cp_1", text: "По описанным критериям нельзя четко определить портрет клиента", penaltyValue: 1.0, checked: false },
+              { id: "pv_cp_2", text: "Не учтена вся потенциальная аудитория продукта (узкий охват)", penaltyValue: 1.0, checked: false },
+              { id: "pv_cp_3", text: "Описана аудитория с разными потребностями/отношением к продукту (широкий охват)", penaltyValue: 1.0, checked: false },
+              { id: "pv_cp_4", text: "Не объяснил принцип поиска целевой аудитории для таргетирования", penaltyValue: 1.0, checked: false },
               { id: "pv_cp_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
               { id: "pv_cp_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
-              { id: "pv_cp_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "pv_cp_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           },
           {
             id: "problem_definition",
             name: "Формулирование проблемы",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
               { id: "pv_pd_1", text: "В разделе проблема описывает фичи и решения, а не потребности", penaltyValue: 1.5, checked: false },
               { id: "pv_pd_2", text: "Неточности в разделении следствий и причин проблемы", penaltyValue: 1.5, checked: false },
-              { id: "pv_pd_3", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "pv_pd_4", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "pv_pd_5", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "pv_pd_3", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "pv_pd_4", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "pv_pd_5", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           },
           {
             id: "ca_problem_benefit",
             name: "Формирование связи ЦА-Проблема-Выгода",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "pv_cb_1", text: "Не раскрыл связь «ЦА-проблема-решение-выгода» для каждого сегмента", penaltyValue: 1, checked: false },
-              { id: "pv_cb_2", text: "В разделах Проблема и Выгода описаны косвенно связанные тезисы", penaltyValue: 1, checked: false },
-              { id: "pv_cb_3", text: "В выгодах не указаны ключевые метрики зарабатывающего продукта, такие как финансовая часть или рост аудитории", penaltyValue: 1, checked: false },
-              { id: "pv_cb_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "pv_cb_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "pv_cb_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "pv_cb_1", text: "Не раскрыл связь «ЦА-проблема-решение-выгода» для каждого сегмента", penaltyValue: 1.0, checked: false },
+              { id: "pv_cb_2", text: "В разделах Проблема и Выгода описаны косвенно связанные тезисы", penaltyValue: 1.0, checked: false },
+              { id: "pv_cb_3", text: "В выгодах не указаны ключевые метрики зарабатывающего продукта, такие как финансовая часть или рост аудитории", penaltyValue: 1.0, checked: false },
+              { id: "pv_cb_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "pv_cb_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "pv_cb_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           }
         ]
@@ -549,18 +541,17 @@
           {
             id: "biz_model_choice",
             name: "Выбор и адаптация бизнес модели и модели монетизации",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "bm_1", text: "Не объяснил разницу между бизнес моделью и моделью монетизации", penaltyValue: 1, checked: false },
-              { id: "bm_2", text: "Не описал альтернативную бизнес модель или модель монетизации", penaltyValue: 1, checked: false },
-              { id: "bm_3", text: "Не учтены некоторые факторы, влияющие на адаптацию бизнес модели/модели монетизации", penaltyValue: 1, checked: false },
-              { id: "bm_4", text: "Не объяснил применение бизнес модели или модели монетизации", penaltyValue: 1, checked: false },
+              { id: "bm_1", text: "Не объяснил разницу между бизнес моделью и моделью монетизации", penaltyValue: 1.0, checked: false },
+              { id: "bm_2", text: "Не описал альтернативную бизнес модель или модель монетизации", penaltyValue: 1.0, checked: false },
+              { id: "bm_3", text: "Не учтены некоторые факторы, влияющие на адаптацию бизнес модели/модели монетизации", penaltyValue: 1.0, checked: false },
+              { id: "bm_4", text: "Не объяснил применение бизнес модели или модели монетизации", penaltyValue: 1.0, checked: false },
               { id: "bm_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
               { id: "bm_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
-              { id: "bm_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "bm_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           }
         ]
@@ -572,15 +563,14 @@
           {
             id: "key_metrics",
             name: "Определение ключевых метрик продукта",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "pm_km_1", text: "Не учтена доходная метрика для зарабатывающего продукта", penaltyValue: 1, checked: false },
-              { id: "pm_km_2", text: "Не учтена метрика количества клиентов для зарабатывающего продукта", penaltyValue: 1, checked: false },
-              { id: "pm_km_3", text: "Не учтена метрика оттока/удержания клиентов для зарабатывающего продукта", penaltyValue: 1, checked: false },
-              { id: "pm_km_4", text: "Не учтены все метрики ценности продукта из видения", penaltyValue: 1, checked: false },
+              { id: "pm_km_1", text: "Не учтена доходная метрика для зарабатывающего продукта", penaltyValue: 1.0, checked: false },
+              { id: "pm_km_2", text: "Не учтена метрика количества клиентов для зарабатывающего продукта", penaltyValue: 1.0, checked: false },
+              { id: "pm_km_3", text: "Не учтена метрика оттока/удержания клиентов для зарабатывающего продукта", penaltyValue: 1.0, checked: false },
+              { id: "pm_km_4", text: "Не учтены все метрики ценности продукта из видения", penaltyValue: 1.0, checked: false },
               { id: "pm_km_5", text: "Для некоторых метрик некорректные/неточные формулы расчета", penaltyValue: 0.5, checked: false },
               { id: "pm_km_6", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
               { id: "pm_km_7", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
@@ -590,15 +580,14 @@
           {
             id: "metrics_decomposition",
             name: "Декомпозиция метрик",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "pm_md_1", text: "Имеются логические/математические ошибки при декомпозиции", penaltyValue: 3, checked: false },
-              { id: "pm_md_2", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "pm_md_3", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "pm_md_4", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "pm_md_1", text: "Имеются логические/математические ошибки при декомпозиции", penaltyValue: 3.0, checked: false },
+              { id: "pm_md_2", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "pm_md_3", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "pm_md_4", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           }
         ]
@@ -610,34 +599,32 @@
           {
             id: "hypothesis_formulation",
             name: "Формулировка гипотез",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "hp_hf_1", text: "Некоторые гипотезы не влияют на достижение заданной цели продукта по кейсу", penaltyValue: 1, checked: false },
-              { id: "hp_hf_2", text: "Ошибки/затруднения в формулировке проверяемого действия/целевой метрики/ожидаемого эффекта", penaltyValue: 1, checked: false },
-              { id: "hp_hf_3", text: "Некоторые гипотезы являются аксиомами, не требуют проверки", penaltyValue: 1, checked: false },
-              { id: "hp_hf_4", text: "Некоторые гипотезы сформулированы в виде задач, предполагают поэтапное выполнение, а не проверку предположения", penaltyValue: 1, checked: false },
+              { id: "hp_hf_1", text: "Некоторые гипотезы не влияют на достижение заданной цели продукта по кейсу", penaltyValue: 1.0, checked: false },
+              { id: "hp_hf_2", text: "Ошибки/затруднения в формулировке проверяемого действия/целевой метрики/ожидаемого эффекта", penaltyValue: 1.0, checked: false },
+              { id: "hp_hf_3", text: "Некоторые гипотезы являются аксиомами, не требуют проверки", penaltyValue: 1.0, checked: false },
+              { id: "hp_hf_4", text: "Некоторые гипотезы сформулированы в виде задач, предполагают поэтапное выполнение, а не проверку предположения", penaltyValue: 1.0, checked: false },
               { id: "hp_hf_5", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 0.5, checked: false },
               { id: "hp_hf_6", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 0.5, checked: false },
-              { id: "hp_hf_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "hp_hf_7", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           },
           {
             id: "hypothesis_backlog_prioritization",
             name: "Приоритизация бэклога гипотез",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "hp_hb_1", text: "Не знаком с каким-либо из классических методов приоритизации гипотез, такие как ICE, RICE, MoSCoW или другие", penaltyValue: 1, checked: false },
-              { id: "hp_hb_2", text: "Метод приоритизации лишь косвенно учитывает влияние метрики ожидаемого эффекта", penaltyValue: 1, checked: false },
-              { id: "hp_hb_3", text: "Влияние ожидаемого эффекта на приоритизацию лишь косвенно опирается на аналитику продукта и математику расчета эффекта, содержит экспертный подход", penaltyValue: 1, checked: false },
-              { id: "hp_hb_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "hp_hb_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "hp_hb_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "hp_hb_1", text: "Не знаком с каким-либо из классических методов приоритизации гипотез, такие как ICE, RICE, MoSCoW или другие", penaltyValue: 1.0, checked: false },
+              { id: "hp_hb_2", text: "Метод приоритизации лишь косвенно учитывает влияние метрики ожидаемого эффекта", penaltyValue: 1.0, checked: false },
+              { id: "hp_hb_3", text: "Влияние ожидаемого эффекта на приоритизацию лишь косвенно опирается на аналитику продукта и математику расчета эффекта, содержит экспертный подход", penaltyValue: 1.0, checked: false },
+              { id: "hp_hb_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "hp_hb_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "hp_hb_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           }
         ]
@@ -649,47 +636,44 @@
           {
             id: "research_selection",
             name: "Выбор исследований для проверки гипотез",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "rh_rs_1", text: "В некоторых случаях выбраны нерелевантные/неоптимальные виды исследований, увеличено время и стоимость проверки гипотез", penaltyValue: 1, checked: false },
-              { id: "rh_rs_2", text: "Затруднения при выборе альтернативных методов проверки гипотез", penaltyValue: 1, checked: false },
-              { id: "rh_rs_3", text: "Работа с некоторыми гипотезами описана не в виде проверки предположения, а в виде выполнения задач", penaltyValue: 1, checked: false },
-              { id: "rh_rs_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "rh_rs_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "rh_rs_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "rh_rs_1", text: "В некоторых случаях выбраны нерелевантные/неоптимальные виды исследований, увеличено время и стоимость проверки гипотез", penaltyValue: 1.0, checked: false },
+              { id: "rh_rs_2", text: "Затруднения при выборе альтернативных методов проверки гипотез", penaltyValue: 1.0, checked: false },
+              { id: "rh_rs_3", text: "Работа с некоторыми гипотезами описана не в виде проверки предположения, а в виде выполнения задач", penaltyValue: 1.0, checked: false },
+              { id: "rh_rs_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "rh_rs_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "rh_rs_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           },
           {
             id: "experiment_design",
             name: "Описание дизайна экспериментов для проверки гипотез",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
               { id: "rh_ed_1", text: "В некоторых экспериментах не сформулирован порядок и описание шагов, сроки проведения, условия завершения, критерии успешности", penaltyValue: 1.5, checked: false },
               { id: "rh_ed_2", text: "Ошибки/неточности в описании дизайна выбранного эксперимента", penaltyValue: 1.5, checked: false },
-              { id: "rh_ed_3", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "rh_ed_4", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "rh_ed_5", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "rh_ed_3", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "rh_ed_4", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "rh_ed_5", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           },
           {
             id: "research_definition",
             name: "Определение исследований при проверке гипотез",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
               { id: "rh_rd_1", text: "Известны лишь несколько видов исследований", penaltyValue: 1.5, checked: false },
               { id: "rh_rd_2", text: "Ошибки/неточности в описании формата применения/проведения исследования", penaltyValue: 1.5, checked: false },
-              { id: "rh_rd_3", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "rh_rd_4", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "rh_rd_5", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "rh_rd_3", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "rh_rd_4", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "rh_rd_5", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           }
         ]
@@ -701,31 +685,29 @@
           {
             id: "metric_calculation",
             name: "Расчет метрик продукта",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "pa_mc_1", text: "Допущены незначительные ошибки в расчетах по заданию", penaltyValue: 3, checked: false },
-              { id: "pa_mc_2", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "pa_mc_3", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "pa_mc_4", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "pa_mc_1", text: "Допущены незначительные ошибки в расчетах по заданию", penaltyValue: 3.0, checked: false },
+              { id: "pa_mc_2", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "pa_mc_3", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "pa_mc_4", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           },
           {
             id: "metric_interpretation",
             name: "Интерпретация метрических данных продукта",
-            baseScore: BASE_SCORE,
-            currentAutoScore: BASE_SCORE,
-            manualScore: "",
+            baseScore: 6.0,
+            currentAutoScore: 6.0,
             commentText: "",
             failItems: [
-              { id: "pa_mi_1", text: "Некоторые выводы по заданию содержат математические/логические ошибки", penaltyValue: 1, checked: false },
-              { id: "pa_mi_2", text: "Затруднения в применении метода расчета сквозной конверсии в воронке", penaltyValue: 1, checked: false },
-              { id: "pa_mi_3", text: "Не сделан ключевой вывод по заданию из кейса", penaltyValue: 1, checked: false },
-              { id: "pa_mi_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1, checked: false },
-              { id: "pa_mi_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1, checked: false },
-              { id: "pa_mi_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1, checked: false }
+              { id: "pa_mi_1", text: "Некоторые выводы по заданию содержат математические/логические ошибки", penaltyValue: 1.0, checked: false },
+              { id: "pa_mi_2", text: "Затруднения в применении метода расчета сквозной конверсии в воронке", penaltyValue: 1.0, checked: false },
+              { id: "pa_mi_3", text: "Не сделан ключевой вывод по заданию из кейса", penaltyValue: 1.0, checked: false },
+              { id: "pa_mi_4", text: "Знания не структурированы, есть пробелы в ответе", penaltyValue: 1.0, checked: false },
+              { id: "pa_mi_5", text: "Затруднения и ошибки при дополнительных вопросах", penaltyValue: 1.0, checked: false },
+              { id: "pa_mi_6", text: "Не сделал часть заданий по кейсу", penaltyValue: 1.0, checked: false }
             ]
           }
         ]
@@ -759,8 +741,6 @@
       failList: document.getElementById("failList"),
       commentInput: document.getElementById("commentInput"),
       autoScoreValue: document.getElementById("autoScoreValue"),
-      manualScoreInput: document.getElementById("manualScoreInput"),
-      manualScoreError: document.getElementById("manualScoreError"),
       finishBtn: document.getElementById("finishBtn"),
       summaryOverlay: document.getElementById("summaryOverlay"),
       summaryContent: document.getElementById("summaryContent"),
@@ -779,6 +759,10 @@
       return Number(value.toFixed(2));
     }
 
+    function roundUpScore(value) {
+      return Math.ceil(clampScore(value));
+    }
+
     function getSelectedCompetency() {
       return competencies.find((c) => c.id === state.selectedCompetencyId);
     }
@@ -795,12 +779,8 @@
       skill.currentAutoScore = clampScore(skill.baseScore - penalties);
     }
 
-    function validateManualScore(value) {
-      if (value === "") return "";
-      const numeric = Number(value);
-      if (Number.isNaN(numeric)) return "Введите число от 0 до 6.";
-      if (numeric < 0 || numeric > 6) return "Ручная оценка должна быть в диапазоне 0..6.";
-      return "";
+    function filterVisibleFailItems(failItems) {
+      return failItems.filter((item) => !HIDDEN_FAIL_TEXTS.has(item.text));
     }
 
     function renderCompetencyList() {
@@ -911,9 +891,7 @@
 
     function renderScorePanel() {
       const skill = getSelectedSkill();
-      refs.autoScoreValue.textContent = String(skill.currentAutoScore);
-      refs.manualScoreInput.value = skill.manualScore;
-      refs.manualScoreError.textContent = "";
+      refs.autoScoreValue.textContent = String(roundUpScore(skill.currentAutoScore));
     }
 
     function buildSummaryRows() {
@@ -922,10 +900,11 @@
         competency.skills.forEach((skill) => {
           const selectedFails = skill.failItems.filter((item) => item.checked);
           if (selectedFails.length === 0) return;
+          const visibleFails = filterVisibleFailItems(selectedFails);
           rows.push({
             themeName: competency.name,
             skillName: skill.name,
-            commentsText: selectedFails.map((f) => `- ${f.text}`).join("\n"),
+            commentsText: visibleFails.map((f) => `- ${f.text}`).join("\n"),
             autoScore: skill.currentAutoScore
           });
         });
@@ -934,10 +913,27 @@
     }
 
     function getLevelLabel(autoScore) {
-      if (autoScore === 0) return "Навык отсутствует";
-      if (autoScore === 1 || autoScore === 2) return "Начальный уровень";
-      if (autoScore === 3 || autoScore === 4) return "Базовый уровень";
+      const roundedScore = roundUpScore(autoScore);
+      if (roundedScore === 0) return "Навык отсутствует";
+      if (roundedScore <= 2) return "Начальный уровень";
+      if (roundedScore <= 4) return "Базовый уровень";
       return "Продвинутый уровень";
+    }
+
+    function buildAnswerCommentsRows() {
+      const rows = [];
+      competencies.forEach((competency) => {
+        competency.skills.forEach((skill) => {
+          const comment = skill.commentText.trim();
+          if (!comment) return;
+          rows.push({
+            themeName: competency.name,
+            skillName: skill.name,
+            commentText: comment
+          });
+        });
+      });
+      return rows;
     }
 
     function renderSummary(rows) {
@@ -963,11 +959,12 @@
         const tbody = document.createElement("tbody");
 
         rows.forEach((row) => {
+          const roundedAutoScore = roundUpScore(row.autoScore);
           const tr = document.createElement("tr");
           tr.innerHTML = `
           <td>${escapeHtml(row.themeName)}</td>
           <td>${escapeHtml(row.skillName)}</td>
-          <td>${row.autoScore} - ${escapeHtml(getLevelLabel(row.autoScore))}</td>
+          <td>${roundedAutoScore} - ${escapeHtml(getLevelLabel(roundedAutoScore))}</td>
           <td>${escapeHtml(row.commentsText).replace(/\n/g, "<br>")}</td>
         `;
           tbody.appendChild(tr);
@@ -1002,24 +999,78 @@
       });
       unofficialTable.appendChild(unofficialBody);
       refs.summaryContent.appendChild(unofficialTable);
+
+      const answerCommentsRows = buildAnswerCommentsRows();
+      const answerCommentsTitle = document.createElement("h2");
+      answerCommentsTitle.style.marginTop = "18px";
+      answerCommentsTitle.textContent = "Комментарии по ответам";
+      refs.summaryContent.appendChild(answerCommentsTitle);
+
+      if (answerCommentsRows.length === 0) {
+        const emptyComments = document.createElement("div");
+        emptyComments.className = "empty";
+        emptyComments.textContent = "Комментарии по ответам не заполнены.";
+        refs.summaryContent.appendChild(emptyComments);
+        return;
+      }
+
+      const answerCommentsTable = document.createElement("table");
+      answerCommentsTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>Тема</th>
+            <th>Навык</th>
+            <th>Комментарий</th>
+          </tr>
+        </thead>
+      `;
+      const answerCommentsBody = document.createElement("tbody");
+      answerCommentsRows.forEach((row) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(row.themeName)}</td>
+          <td>${escapeHtml(row.skillName)}</td>
+          <td>${escapeHtml(row.commentText)}</td>
+        `;
+        answerCommentsBody.appendChild(tr);
+      });
+      answerCommentsTable.appendChild(answerCommentsBody);
+      refs.summaryContent.appendChild(answerCommentsTable);
     }
 
     function buildEmailText(rows, fullName) {
       const lines = [`ФИО респондента: ${fullName}`, "", "Итоговая оценка:"];
       rows.forEach((row, idx) => {
+        const roundedAutoScore = roundUpScore(row.autoScore);
+        const commentLines = row.commentsText
+          ? row.commentsText.split("\n").map((line) => `   ${line}`).join("\n")
+          : "";
         lines.push(
           "",
           `${idx + 1}. Тема: ${row.themeName}`,
           `   Навык: ${row.skillName}`,
-          `   Уровень: ${row.autoScore} - ${getLevelLabel(row.autoScore)}`,
+          `   Уровень: ${roundedAutoScore} - ${getLevelLabel(roundedAutoScore)}`,
           "   Комментарии:",
-          row.commentsText.split("\n").map((line) => `   ${line}`).join("\n")
+          commentLines
         );
       });
       lines.push("", "Неофициальные комментарии:");
       state.unofficialComments.forEach((item, idx) => {
         lines.push(`${idx + 1}. ${item.question}: ${item.answer}`);
       });
+      const answerCommentsRows = buildAnswerCommentsRows();
+      lines.push("", "Комментарии по ответам:");
+      if (answerCommentsRows.length === 0) {
+        lines.push("Нет комментариев.");
+      } else {
+        answerCommentsRows.forEach((row, idx) => {
+          lines.push(
+            `${idx + 1}. Тема: ${row.themeName}`,
+            `   Навык: ${row.skillName}`,
+            `   Комментарий: ${row.commentText}`
+          );
+        });
+      }
       return lines.join("\n");
     }
 
@@ -1045,11 +1096,6 @@
       } else {
         refs.fullNameError.textContent = "";
       }
-
-      const currentSkill = getSelectedSkill();
-      const manualError = validateManualScore(String(currentSkill.manualScore));
-      refs.manualScoreError.textContent = manualError;
-      if (manualError) isValid = false;
 
       state.unofficialComments.forEach((item) => {
         const value = item.answer.trim();
@@ -1091,12 +1137,6 @@
     refs.commentInput.addEventListener("input", (event) => {
       const skill = getSelectedSkill();
       skill.commentText = event.target.value;
-    });
-
-    refs.manualScoreInput.addEventListener("input", (event) => {
-      const skill = getSelectedSkill();
-      skill.manualScore = event.target.value;
-      refs.manualScoreError.textContent = validateManualScore(skill.manualScore);
     });
 
     refs.fullNameInput.addEventListener("input", () => {
